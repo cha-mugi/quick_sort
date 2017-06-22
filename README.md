@@ -51,3 +51,4 @@ Private Sub CommandButton4_Click()
   Set Stream = Nothing
   
 End Sub
+http://officetanaka.net/excel/vba/variable/08.htm
