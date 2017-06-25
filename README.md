@@ -52,3 +52,58 @@ Private Sub CommandButton4_Click()
   
 End Sub
 http://officetanaka.net/excel/vba/variable/08.htm
+
+
+Sub CreateArgStatement()
+
+Dim sheet1 As Worksheet
+Set s = Worksheets(1)
+
+'現在位置から親を探す
+Dim arg_statement As String
+arg_statement = parent_name(current_y_pos, current_x_pos, s)
+
+End Sub
+
+
+'親のnameを返す
+Function parent_name(current_y_pos As Long, current_x_pos, sheet As Worksheet) As String
+
+
+    '現在位置が親の位置ならそのまま親を返す
+    If current_x_pos = 5 Then
+    '''arg_child_x_pos_argnameは引数名
+        parente_name = s.Cells(current_y_pos, current_x_pos_argName).Value
+        
+        GoTo Continue
+    End If
+    '
+    
+    '直接の親を探す
+    arg_child_y_pos = current_y_pos
+      '自分の直接の親のx座標を指す
+    arg_child_x_pos = current_x_pos - 1
+    Do While s.Cells(arg_child_y_pos, arg_child_x_pos).Value <> ""
+        arg_child_y_pos = arg_child_y_pos - 1
+    Loop
+    '''arg_child_x_pos_argnameは引数名
+    parente_name = s.Cells(arg_child_y_pos, arg_child_x_pos_argname)
+    
+    parent_name = parent_name(arg_child_y_pos, arg_child_x_pos) & parent_name
+Continue:
+End Function
+
+Sub CreateNextMessage()
+    '複数のMessageを作成する
+    
+    ''受信メッセージの隣にIF名がなければ、Messageを作成する
+End Sub
+
+Sub Create()
+    '複数の引数を一つのEnumに変換
+    '
+    
+    ''受信メッセージの隣にIF名がなければ、Messageを作成する
+End Sub
+
+
