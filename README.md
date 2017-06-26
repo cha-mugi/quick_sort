@@ -107,3 +107,31 @@ Sub Create()
 End Sub
 
 
+NString string;
+string.GetString(char[],size)
+
+#open ($fh, '<:encoding(cp932)', 'text01.txt')
+my $header = 'Message.h'
+my $cpp    = 'Message.cpp'
+
+my $CPP
+my $HEADER
+open(CPP,cpp)
+open(HEADER,header)
+
+while(<$CPP>)
+{
+	if ($_ =~ /¥d+yen/)
+	{
+  		print "$str¥n";
+	}		
+}
+
+close(CPP)
+close(HEADER)
+
+strSamp = "123456789"
+strSamp = Replace(strSamp, "123", "000")
+'000456789を返す
+
+https://allabout.co.jp/gm/gc/420438/
