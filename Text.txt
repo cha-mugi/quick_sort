@@ -142,4 +142,211 @@ End Function
 ・誰がマクロを実行してもコンパイルが通るコードが出力されている
 　状態のコードになっていない
 　　
+Const y_origin As Long = 7
+Const y_end As Long = 127
+
+Const x_origin As Long = 3
+Const x_arg_type As Long = 3
+Const x_type_max As Long = x_origin + 6
+Const x_arg_name As Long = x_origin + 7
+Const x_return As Long = x_origin + 8
+Const x_interface_arg As Long = x_origin + 3
+Const x_create_message As Long = x_origin + 10
+Const x_receive_message As Long = x_origin + 2
+
+Const SheetName As String = "1"
+Const Blank3 As String = vbTab & vbTab & vbTab
+'イメージ
+'void
+'Interface(
+'   const Event& ev
+'　);
+
+'=================================
+'【戻り値の型】
+'【受信インターフェース名】(
+'   【引き数の型】【引数名】
+'   );
+'=================================
+'メイン関数
+'Print s.cells(y_pos,x_origin+8).Value
+'Print s.cells(y_pos,x_orign).Value & "("
+'   for i = 1 to ArgList.Count Step 1
+'       ArgList(i) & vbTab & ArgNameList(i)
+'   Next
+'Print ");"
+Sub CreateHeader()
+    Set s = Worksheets(SheetName)
+    Dim datFile As String
+    datFile = ActiveWorkbook.Path & "\data.txt"
+    Open datFile For Output As #1
+
+    Print #1, "namespace SPLink"
+    Print #1, "{"
+    
+    Print #1, "class Receive_Converter"
+    Print #1, vbTab & ":public NObject"
+    Print #1, vbTab & "{"
+
+    Set IFList = GetIFNameList()
+    For i = 1 To IFList.Count
+        Dim y As Long
+        y = IFList(i)
+        Print #1, Blank3 & GetReturnType(y)
+        Print #1, Blank3 & s.Cells(y, x_origin).Value & "("
+        Set ArgTypeList = GetArgList(y)
+        Set ArgNameList = GetArgNameList(y)
+        For argIndex = 1 To ArgTypeList.Count
+            If argIndex = ArgTypeList.Count Then
+                Print #1, Blank3 & vbTab & ArgTypeList(argIndex) & " " & ArgNameList(argIndex) & ");"
+            Else
+                 Print #1, Blank3 & vbTab & ArgTypeList(argIndex) & " " & ArgNameList(argIndex) & ","
+            End If
+        Next
+    Next
+    
+    Print #1, vbTab & "};"
+    'namespace
+    Print #1, "}"
+    Close #1
+
+End Sub
+'=================================
+'Interfaceの数だけ上記を繰り返す
+'=================================
+Function GetArgList(y_pos As Long) As Collection
+    Set s = Worksheets(SheetName)
+    Dim argList As New Collection
+    Dim y As Long
+    y = y_pos
+    Do While s.Cells(y + 1, x_receive_message).Value <> "受信メッセージ"
+        If s.Cells(y, x_origin + x_arg_type).Value <> "" Then
+            argList.Add Item:=s.Cells(y, x_origin + x_arg_type).Value
+        End If
+        y = y + 1
+    Loop
+    Set GetArgList = argList
+End Function
+
+'=================================
+'サブ関数 引数名リストを取得する
+Function GetArgNameList(y_pos As Long) As Collection
+    Set s = Worksheets(SheetName)
+    Dim argList As New Collection
+    Dim y As Long
+    y = y_pos + 1
+    Do While s.Cells(y, x_receive_message).Value <> "受信メッセージ"
+        If s.Cells(y, x_arg_name).Value <> "" Then
+            argList.Add Item:=s.Cells(y, x_arg_name).Value
+        End If
+        y = y + 1
+    Loop
+    Set GetArgNameList = argList
+End Function
+
+'=================================
+'サブ関数 Interface名がある位置リストを取得する
+Function GetIFNameList() As Collection
+    Set s = Worksheets(SheetName)
+    Dim nameList As New Collection
+    For i = y_origin To y_end Step 1
+        If s.Cells(i, x_origin).Value <> "" Then
+            nameList.Add Item:=i
+        End If
+    Next
+    Set GetIFNameList = nameList
+End Function
+Function GetReturnType(y_pos As Long) As String
+    Set s = Worksheets(SheetName)
+    Dim returnType As String
+    returnType = s.Cells(y_pos, x_return).Value
+    GetReturnType = returnType
+End Function
+
+Sub makeReceiveMessage()
+
+'IF名があるy座標を取得
+Dim InterfacePosList As New Collection
+For i = y_origin To y_end Step 1
+    Dim InterfaceName As String
+    InterfaceName = s.Cells(i, x_origin).Value
+    
+    If InterfaceName <> "" Then
+        InterfacePosList.Add Item:=i
+    End If
+Next
+
+
+
+'戻り値の型
+Dim returnType As String
+returnType = s.Cells(y_pos, x_return).Value
+
+'Interface名
+InterfaceName = s.Cells(y_pos, x_origin).Value
+
+'Interfaceの引数の型''''''''''''''''''''''''''''''''''''
+Dim InterfaceArgList As New Collection
+Dim InterfaceArgPosList As New Collection
+
+For i = 0 To 100 Step 1
+    If s.Cells(i + 1, x_receive_message).Value = "受信メッセージ" Then
+        Exit For
+    End If
+    
+    Dim InterfaceArg As String
+    InterfaceArg = s.Cells(i, x_interface_arg).Value
+    If InterfaceArg <> "" Then
+        InterfaceArgList.Add Item:=InterfaceArg
+        InterfaceArgPosList.Add Item:=i
+    End If
+Next
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'Receive_Message名
+Dim ReceiveMessageNameList As New Collection
+Dim ReceiveMessageName As String
+Dim ReceiveMessagePosList As New Collection
+
+For i = 0 To 100 Step 1
+    If s.Cells(i + 1, x_origin).Value <> "" Then
+        Exit For
+    End If
+    
+    If s.Cells(i, 5).Value = "受信メッセージ" Then
+        ReceiveMessageName = s.Cells(i, x_receive_message).Value
+        If ReceiveMessageName <> "" Then
+            ReceiveMessageNameList.Add Item:=ReceiveMessageName
+            ReceiveMessagePosList.Add Item:=i
+        End If
+    End If
+Next
+
+'Messageのメンバに対応する引数(子)の座標を取得する処理'''''''''
+''受信メッセージ数だけ繰り返す
+Dim ChildList As New Collection
+Dim ChildPosList As New Collection
+Dim Child As String
+
+
+For i = 0 To 100 Step 1
+    If s.Cells(i + 1, 5).Value <> "受信メッセージ" Then
+        Exit For
+    End If
+    
+    Child = s.Cells(i, x_arg_name).Value
+    If Child <> "" Then
+        ChildPosList.Add Item:=i
+    End If
+    
+    Dim hasType As Boolean
+    hasType = False
+    For J = x_interface_arg To x_type_max Step 1
+        If s.Cells(y_pos, x_interface_arg).Value <> "" Then
+            hasType = True
+            Exit For
+        End If
+    Next
+    
+Next
 
