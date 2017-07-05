@@ -349,4 +349,65 @@ For i = 0 To 100 Step 1
     Next
     
 Next
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Const x_origin As Long = 3
+Const y_origin As Long = 3
+Const y_end    As Long = 100
+
+Const x_message_name As Long = x_origin + 0
+
+Const fileName As String = "data.txt"
+Const SheetName As String = "1"
+Enum ArgMapMember
+    ArgOnly
+    MemberOnly
+    ArgMapMember
+    Non
+End Enum
+
+'MassageList
+Function GetMsgList() As Collection
+    Dim s As Worksheet
+    Set s = Worksheets(SheetName)
+    
+    Dim datFile As String
+    datFile = ActiveWorkbook.Path & fileName
+    
+    Dim MsgList As New Collection
+    On Error Resume Next    'データを登録する間、エラーを無視する
+    For i = 1 To 10 Step 1
+    With MsgList
+        .Add Item:=s.Cells(i, x_message_name).Value ', Key:=s.Cells(i, x_message_name).Value
+    End With
+    Next i
+    'On Error GoTo 0
+    
+    Set GetMsgList = MsgList
+End Function
+'API名のy座標を取得する
+Function GetSendAPIPosList(MsgName As String) As Collection
+    Dim s As Worksheet
+    Set s = Worksheets(SheetName)
+    
+    Dim APIList As New Collection
+    
+    For i = y_origin To y_end Step 1
+        If s.Cells(i, x_message_name).Value = MsgName Then
+            APIList.Add Item:=i
+        End If
+    Next
+    
+    Set GetSendAPIPosList = APIList
+End Function
+'引数
+Function IsSameType(MsgType As String, ArgType As String) As Boolean
+    Dim IsSame As Boolean
+    IsSame = False
+    If InStr(ArgType, MsgTye) <= 0 Then
+        IsSame = True
+    End If
+    IsSameType = IsSame
+End Function
+
 
