@@ -546,3 +546,32 @@ Function GetArgStatement(ArgMapType As String, ArgType As String, MemberName As 
     End If
 
 End Function
+
+#include "static_assert.h"
+
+void
+Converter::()
+{
+	STATIC_ASSERT(false,)
+}
+
+void
+::()
+{
+	STATIC_ASSERT(false,)
+}
+template<bool>
+struct Error;
+#define STATIC_ASSERT(expr, msg) \
+{	 Error<expr> ERROR_##msg; \
+	(void)ERROR_##msg;\
+}
+
+class 
+{
+public:
+	void ();
+	void ();
+};
+
+http://gimkondo.blog98.fc2.com/blog-entry-11.html
