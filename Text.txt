@@ -411,3 +411,138 @@ Function IsSameType(MsgType As String, ArgType As String) As Boolean
 End Function
 
 
+表の上端から下端まで繰り返す
+	
+	'①関数の定義を出力する
+		'Send_Converter(
+		'	const Message& mssage)
+		'{
+
+		'i.　Messageの名前を取得する
+    	s.cells(y_pos,x_orign).Value
+		'ii. 上記のステートメントを出力する
+    	Print state
+
+
+	'②送信先のAPIを呼ぶ
+		'IPI_XXX::RequestXXX(
+		'	message.Get(),
+			ConvertToA(message.Get()),
+			&( message.Get() ) );
+		'}
+
+		'i　引数のリストを取得する
+		'ii 引数のリストで、引数の型とMessageのメンバ変数の型と比較し、以下に分類する
+			・同じ型
+			・同じ型のポインタ
+　　　　　　・変換が必要な型
+			・固定値
+		'iii iiで分類をInputに以下のステートメントを作成する
+			・message.Get()
+			・ConvertToA(message.Get())
+			・&( message.Get() )
+			・（固定値）ConstantValue
+
+Const x_origin As Long = 3
+Const y_origin As Long = 3
+Const y_end    As Long = 100
+
+Const x_message_name As Long = x_origin + 0
+
+Const fileName As String = "data.txt"
+Const SheetName As String = "1"
+Enum ArgMapMember
+    ArgOnly
+    MemberOnly
+    Map
+    MapWithPointer
+    Non
+    ConstantValue
+    SameTypePointer
+End Enum
+
+'MassageList
+Function GetMsgList() As Collection
+    Dim s As Worksheet
+    Set s = Worksheets(SheetName)
+    
+    Dim datFile As String
+    datFile = ActiveWorkbook.Path & fileName
+    
+    Dim MsgList As New Collection
+    On Error Resume Next    'データを登録する間、エラーを無視する
+    For i = 1 To 10 Step 1
+    With MsgList
+        .Add Item:=s.Cells(i, x_message_name).Value ', Key:=s.Cells(i, x_message_name).Value
+    End With
+    Next i
+    'On Error GoTo 0
+    
+    Set GetMsgList = MsgList
+End Function
+'API名のy座標を取得する
+Function GetSendAPIPosList(MsgName As String) As Collection
+    Dim s As Worksheet
+    Set s = Worksheets(SheetName)
+    
+    Dim APIList As New Collection
+    
+    For i = y_origin To y_end Step 1
+        If s.Cells(i, x_message_name).Value = MsgName Then
+            APIList.Add Item:=i
+        End If
+    Next
+    
+    Set GetSendAPIPosList = APIList
+End Function
+'引数Msgの型が同じかどうか判定
+Function JudgeArgMapType(MsgType As String, ArgType As String, MemberName As String) As ArgMapMember
+    Dim IsSame As Boolean
+    IsSame = False
+    
+    '空白のとき
+    If MsgType = "" And ArgType = "" Then
+        JudgeArgMapType = ArgMapMember.Non
+    '型が同じ時(ポインタ除く)
+    ElseIf InStr(ArgType, MsgTye) <= 0 And InStr(ArgType, "*") <= 0 Then
+        JudgeArgMapType = ArgMapMember.Map
+    '型が同じ時(ポインタ含む)
+    ElseIf InStr(ArgType, MsgTye) <= 0 And InStr(ArgType, "*") > 0 Then
+        JudgeArgMapType = ArgMapMember.MapWithPointer
+    '固定値の場合
+    ElseIf MsgType = "" And ArgType <> "" And MemberName <> "" Then
+        JudgeArgMapType = ArgMapMember.ConstantValue
+    '引数にだけ記入がある
+    ElseIf MsgType = "" And ArgType <> "" Then
+        JudgeArgMapType = ArgMapMember.ArgOnly
+    'メンバにだけ記入がある
+    ElseIf MsgType <> "" And ArgType = "" Then
+        JudgeArgMapType = ArgMapMember.MemberOnly
+    End If
+    
+    JudgeArgMapType = ArgMapMember.Non
+End Function
+
+Function GetArgStatement(ArgMapType As String, ArgType As String, MemberName As String) As String
+
+    '空白のとき
+    If ArgMapType = ArgMapMember.Non Then
+        GetArgStatement = ""
+    '型が同じ時(ポインタ除く)
+    ElseIf ArgMapType = ArgMapMember.Map Then
+        GetArgStatement = ArgType
+    '型が同じ時(ポインタ含む)
+    ElseIf ArgMapType <= 0 And InStr(ArgType, "*") > 0 Then
+        GetArgStatement = ArgType & amp
+    '固定値の場合
+    ElseIf ArgMapType = ArgMapMember.ConstantValue Then
+        GetArgStatement = MemberName
+    '引数にだけ記入がある
+    ElseIf ArgMapType = ArgMapMember.ArgOnly Then
+        GetArgStatement = ArgMapMember.ArgOnly
+    'メンバにだけ記入がある
+    ElseIf ArgMapType <> "" And ArgType = "" Then
+        ArgMapType = ArgMapMember.MemberOnly
+    End If
+
+End Function
