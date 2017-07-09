@@ -575,3 +575,224 @@ public:
 };
 
 http://gimkondo.blog98.fc2.com/blog-entry-11.html
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Const x_origin As Long = 3
+
+Const x_msg_name As Long = x_origin + 1
+Const x_msg_member_type  As Long = x_origin + 4
+Const x_msg_member_name  As Long = x_origin + 5
+Const x_send_module As Long = x_origin + 6
+Const x_api_name As Long = x_origin + 7
+Const x_arg_type As Long = x_origin + 8
+Const x_api_return As Long = x_origin + 9
+Const x_call_type As Long = x_origin + 10
+
+Const y_origin As Long = 3
+Const y_end    As Long = 108
+
+Const amp As String = "&"
+Const fileName As String = "\aaaaa.txt"
+Const SheetName As String = "1"
+Enum ArgMapMember
+    ArgOnly
+    MemberOnly
+    Map
+    MapWithPointer
+    Non
+    ConstantValue
+    SameTypePointer
+    Convert
+End Enum
+Type sample
+ a As String
+End Type
+Sub make()
+    Dim s As Worksheet
+    Set s = Worksheets(SheetName)
+    
+    Dim datFile As String
+    datFile = ActiveWorkbook.Path & fileName
+    Open datFile For Output As #1
+    'msgList取得
+    Dim MsgList As New Collection
+    Set MsgList = GetMsgList()
+
+    
+    For i = 1 To MsgList.Count Step 1
+        'APIリスト取得
+        api_start = MsgList(i)
+        api_end = 0
+        If i = MsgList.Count Then
+            api_end = y_end
+        Else
+            api_end = MsgList(i + 1)
+        End If
+        Dim apiList As New Collection
+        Set apiList = GetSendAPIPosList(CLng(api_start), CLng(api_end))
+        
+        For j = 1 To apiList.Count Step 1
+            'APIリスト取得
+            arg_start = apiList(j)
+            arg_end = 0
+            If j = apiList.Count Then
+                arg_end = api_end
+            Else
+                arg_end = apiList(j + 1)
+            End If
+            Dim argList As New Collection
+            Set argList = GetArgPosList(CLng(api_start), CLng(api_end))
+        
+            For k = 1 To argList.Count Step 1
+                arg_pos = CLng(argList(k))
+                arg_type = s.Cells(arg_pos, x_arg_type).Value
+                member_type = s.Cells(arg_pos, x_msg_member_type).Value
+                member_name = s.Cells(arg_pos, x_msg_member_name).Value
+                
+                a = JudgeArgMapType(CStr(member_type), CStr(member_type), CStr(member_name))
+            
+            Next
+        Next
+        Print #1, "STATIC_ASSERT(false,待ち合わせ処理を実装してください)"
+    Next
+
+
+    Close #1
+End Sub
+ 
+'MassageList
+Function GetMsgList() As Collection
+    Dim s As Worksheet
+    Set s = Worksheets(SheetName)
+     
+    Dim MsgList As New Collection
+    For i = y_origin To y_end Step 1
+        If s.Cells(i, x_origin).Value <> "" Then
+            With MsgList
+                .Add Item:=i
+            End With
+        End If
+    Next
+    
+    Set GetMsgList = MsgList
+End Function
+'API名のy座標を取得する
+Function GetSendAPIPosList(y_start As Long, y_end As Long) As Collection
+    Dim s As Worksheet
+    Set s = Worksheets(SheetName)
+    
+    Dim apiList As New Collection
+    
+    For i = y_start To y_end Step 1
+        If s.Cells(i, x_api_name).Value <> "" Then
+            apiList.Add Item:=i
+        End If
+    Next
+    
+    Set GetSendAPIPosList = apiList
+End Function
+'引数のy座標を取得する
+Function GetArgPosList(y_start As Long, y_end As Long) As Collection
+    Dim s As Worksheet
+    Set s = Worksheets(SheetName)
+    
+    Dim argList As New Collection
+    
+    For i = y_start To y_end Step 1
+        If s.Cells(i, x_arg_type).Value <> "" Then
+            argList.Add Item:=i
+        End If
+    Next
+    
+    Set GetArgPosList = argList
+End Function
+'引数Msgの型が同じかどうか判定
+Function JudgeArgMapType(MsgType As String, ArgType As String, MemberName As String) As ArgMapMember
+    Dim IsSame As Boolean
+    IsSame = False
+    
+    '空白のとき
+    If MsgType = "" And ArgType = "" Then
+        JudgeArgMapType = ArgMapMember.Non
+    '型が同じ時(ポインタ除く)
+    ElseIf InStr(ArgType, MsgTye) < 0 And InStr(ArgType, "*") <= 0 Then
+        JudgeArgMapType = ArgMapMember.Map
+    '型が同じ時(ポインタ含む)
+    ElseIf InStr(ArgType, MsgTye) < 0 And InStr(ArgType, "*") > 0 Then
+        JudgeArgMapType = ArgMapMember.MapWithPointer
+    '固定値の場合
+    ElseIf MsgType = "" And ArgType <> "" And MemberName <> "" Then
+        JudgeArgMapType = ArgMapMember.ConstantValue
+    '引数にだけ記入がある
+    ElseIf MsgType = "" And ArgType <> "" Then
+        JudgeArgMapType = ArgMapMember.ArgOnly
+    'メンバにだけ記入がある
+    ElseIf MsgType <> "" And ArgType = "" Then
+        JudgeArgMapType = ArgMapMember.MemberOnly
+    ElseIf MsgType <> "" And ArgType <> "" Then
+        JudgeArgMapType = ArgMapMember.Convert
+    End If
+    
+    'JudgeArgMapType = ArgMapMember.Non
+End Function
+
+Function GetArgStatement(ArgMapType As String, ArgType As String, MemberName As String) As String
+
+    '空白のとき
+    If ArgMapType = ArgMapMember.Non Then
+        GetArgStatement = ""
+    '型が同じ時(ポインタ除く)
+    ElseIf ArgMapType = ArgMapMember.Map Then
+        GetArgStatement = ArgType
+    '型が同じ時(ポインタ含む)
+    ElseIf ArgMapType = ArgMapMember.MapWithPointer Then
+        GetArgStatement = ArgType & amp
+    '固定値の場合
+    ElseIf ArgMapType = ArgMapMember.ConstantValue Then
+        GetArgStatement = MemberName
+    '引数にだけ記入がある
+    ElseIf ArgMapType = ArgMapMember.ArgOnly Then
+        GetArgStatement = ""
+    'メンバにだけ記入がある
+    ElseIf ArgMapType = ArgMapMember.MemberOnly Then
+        ArgMapType = ""
+        
+    ElseIf ArgMapType = ArgMapMember.Convert Then
+        ArgMapType = ""
+    End If
+
+End Function
+
+Function GetAccessorName(state As String) As String
+    Dim GetState As String
+    GetState = ""
+    
+    GetState = Replace(state, "m_", "Get")
+    GetAccessorName = GetState
+End Function
+Function GetConvertName(state As String) As String
+    Dim ConvertState As String
+    ConvertState = ""
+    
+    SplitSpaceState = Split(state, " ")
+    SplitLength = UBound(SplitSpaceState)
+    
+    ConvertState = SplitSpaceState(SplitLength)
+    SplitBarState = Split(ConvertState, "_")
+    SplitLength = UBound(SplitBarState)
+    
+    If SplitLength = 0 Then
+        ConvertState = "ConvertTo" & ConvertState
+        GetConvertName = ConvertState
+    Else
+        ConvertState = ""
+        elem = ""
+        For i = 0 To SplitLength
+            ConvertState = ConvertState & StrConv(SplitBarState(i), vbProperCase)
+        Next
+        ConvertState = "ConvertTo" & ConvertState
+        GetConvertName = ConvertState
+    End If
+
+End Function
+
+
