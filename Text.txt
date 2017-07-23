@@ -871,3 +871,239 @@ class Player {
         }
     }
 }
+package puyo;
+
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.Scanner;
+
+/**
+ * Auto-generated code below aims at helping you parse the standard input
+ * according to the problem statement.
+ **/
+/**
+ * @author inohara
+ *
+ */
+class Player
+{
+
+	public static void main(String args[])
+	{
+		Scanner in = new Scanner(System.in);
+
+		char Board[][] = new char[12][6];
+		// game loop
+		while (true)
+		{
+			int ball = 0;
+			LinkedList<Integer> ballList = new LinkedList<>();
+
+			for (int i = 0; i < 8; i++)
+			{
+				int colorA = in.nextInt(); // color of the first block
+				int colorB = in.nextInt(); // color of the attached block
+				ballList.add(colorA);
+			}
+			System.err.println(ballList);
+
+			LinkedList<String> stackedBall = new LinkedList<>();
+			int score1 = in.nextInt();
+			for (int i = 0; i < 12; i++)
+			{
+				String row = in.next(); // One line of the map ('.' = empty, '0'
+										// = skull block, '1' to '5' = colored
+										// block)
+				stackedBall.add(row);
+				for (int j = 0; j < row.length(); j++)
+				{
+					Board[i][j] = row.charAt(j);
+				}
+			}
+			System.err.println(searchComplementPosList(Board));
+
+			String zeroLine = stackedBall.get(11);
+			int score2 = in.nextInt();
+			for (int i = 0; i < 12; i++)
+			{
+				String row = in.next();
+			}
+
+			Integer dropBall = ballList.get(0);
+			int dest = zeroLine.indexOf(dropBall.toString());
+
+			int limit = 4;
+			String limitLine = stackedBall.get(4);
+			for (int i = 11; 0 <= i; --i)
+			{
+				String line = stackedBall.get(i);
+				dest = line.indexOf(dropBall.toString());
+
+				if (dest != -1 && 6 <= i /* && !(limitLine.matches("[1-5]") */)
+				{
+					LinkedList<Integer> dst_candidate = new LinkedList<>();
+					System.err.println(limitLine);
+					for (int j = 0; j < limitLine.length(); j++)
+					{
+						char ballName = limitLine.charAt(j);
+						// System.err.println(ballName);
+						if (ballName == '.')
+						{
+							dst_candidate.add(j);
+						}
+					}
+					System.err.println(dst_candidate);
+
+					break;
+				}
+			}
+
+			if (dest == -1)
+			{
+
+				// dest = dst_candidate.get(0);
+
+				dest = new Random().nextInt(6);
+			} else
+			{
+			}
+			// Write an action using System.out.println()
+			// To debug: System.err.println("Debug messages...");
+
+			System.out.println(dest); // "x": the column in which to drop your
+										// blocks
+		}
+	}
+
+	/**
+	 * @param Board
+	 * @return
+	 */
+	static public LinkedList<Complement> searchComplementPosList(char[][] Board)
+	{
+		LinkedList<Complement> compList = new LinkedList<>();
+		for (int y = 0; y < 12; ++y)
+		{
+			for (int x = 0; x < 6; ++x)
+			{
+				for (int d = -1; d <= 1; ++d)
+				{
+					if (x + d < 0)
+						continue;
+					if (x + d > 5)
+						continue;
+					if (d == 0 && y - 1 < 0)
+						continue;
+
+					if (Board[y][x] != '.')
+					{
+						if (Board[y][x + d] == '.')
+						{
+							System.err.println(x);
+							Complement comp = new Complement();
+							comp.x = x + d;
+							comp.y = y;
+							compList.add(comp);
+						}
+						if (d == 0 && Board[y - 1][x] == '.')
+						{
+							Complement comp = new Complement();
+							comp.x = x;
+							comp.y = y - 1;
+							compList.add(comp);
+						}
+					}
+				}
+			}
+		}
+
+		return compList;
+	}
+
+	/**
+	 * @param Board
+	 * @param compList
+	 * @param next
+	 * @return
+	 */
+	static public LinkedList<Complement> searchComplementPosList(char[][] Board, LinkedList<Complement> compList,
+			int next)
+	{
+
+		for (Complement comp : compList)
+		{
+			int vanishCount = 0;
+			if (comp.y - 1 < 0)
+				continue;
+			Board[comp.y][comp.x] = (char) next;
+			Board[comp.y - 1][comp.x] = (char) next;
+			for (int y = 0; y < 12; ++y)
+			{
+				for (int x = 0; x < 6; ++x)
+				{
+					if (Board[y][x] == '.' || Board[y][x] == '0')
+						continue;
+					//I型
+					if (y - 4 > 0)
+					{
+						if (Board[y][x] == Board[y - 1][x] && Board[y - 1][x] == Board[y - 2][x]
+								&& Board[y - 2][x] == Board[y - 3][x])
+							++vanishCount;
+					}
+					//L型
+					if (x + 1 < 5 && y - 3 > 0)
+					{
+						if (Board[y][x] == Board[y - 1][x] && Board[y - 1][x] == Board[y - 2][x]
+								&& Board[y - 2][x] == Board[y][x + 1])
+							++vanishCount;
+					}
+					//T型
+					if (x + 2 < 5 && y - 1 > 0)
+					{
+						if (Board[y][x] == Board[y - 1][x + 1] && Board[y][x] == Board[y][x + 1]
+								&& Board[y][x + 1] == Board[y][x + 2])
+							++vanishCount;
+					}
+					//O型
+					if (x + 1 < 5 && y - 1 > 0)
+					{
+						if (Board[y][x] == Board[y][x + 1] && Board[y][x + 1] == Board[y - 1][x]
+								&& Board[y - 1][x] == Board[y - 1][x + 1])
+							++vanishCount;
+					}
+					//S型
+					if (x + 1 < 5 && y - 2 > 0)
+					{
+						if (Board[y][x] == Board[y - 1][x] && Board[y - 1][x] == Board[y - 1][x + 1]
+								&& Board[y - 1][x + 1] == Board[y - 2][x + 1])
+							++vanishCount;
+					}
+					//逆S型
+					if (x - 1 < 0 && y - 2 > 0)
+					{
+						if (Board[y][x] == Board[y - 1][x] && Board[y - 1][x] == Board[y - 1][x - 1]
+								&& Board[y - 1][x - 1] == Board[y - 2][x - 2])
+							++vanishCount;
+					}
+
+				}
+			}
+		}
+
+		return compList;
+	}
+
+}
+
+class Complement
+{
+	public Integer x;
+	public Integer y;
+
+	public String toString()
+	{
+		String ret = String.valueOf(x) + "," + String.valueOf(y);
+		return ret;
+	}
+
+}
