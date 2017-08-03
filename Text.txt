@@ -1107,3 +1107,53 @@ class Complement
 	}
 
 }
+Const x_origin As Long = 1
+Const x_src_class_name As Long = x_origin + 1
+Const x_src_class_type As Long = x_origin + 2
+Const x_src_member_name As Long = x_origin + 3
+Const x_src_member As Long = x_origin + 4
+Const x_src_getter As Long = x_origin + 5
+
+Const x_src_operator As Long = x_origin + 6
+
+Const x_dst_class_name As Long = x_origin + 7
+Const x_dst_class_type As Long = x_origin + 8
+Const x_dst_member_name As Long = x_origin + 9
+Const x_dst_member As Long = x_origin + 10
+Const x_dst_setter As Long = x_origin + 11
+Const x_dst_const As Long = x_origin + 12
+
+Const fileName As String = "\aaaaa.txt"
+Const SheetName As String = "Sheet2"
+
+Type sample
+    src_class_name As String
+    src_class_type As String
+    src_member_name_list As Collection
+    src_member_list As Collection
+    src_member_getter_list As Collection
+    dst_class_name As String
+    dst_class_type As String
+    dst_member_name_list As Collection
+    dst_member_list As Collection
+    dst_member_setter_list As Collection
+End Type
+
+Function ConvertState(src_class_name As String, src_class_type As String, src_member_name_list As Collection, src_member_list As Collection, src_member_getter_list As Collection, dst_class_name As String, dst_class_type As String, dst_member_name_list As Collection, dst_member_list As Collection, dst_member_setter_list As Collection)
+
+    Dim s As Worksheet
+    Set s = Worksheets(SheetName)
+    
+    Dim datFile As String
+    datFile = ActiveWorkbook.Path & "\" & fileName
+    Open datFile For Output As #1
+    
+    
+    Print #1, "void"
+    Print #1, "Convert(" & dst_class & " dst,"
+    Print #1, "Convert(" & dst_class & " dst,"
+    
+    
+    Close #1
+
+End Function
