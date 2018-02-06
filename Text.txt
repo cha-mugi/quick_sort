@@ -1,3 +1,4 @@
 https://qiita.com/edo_m18/items/b9765ff3313d5a13f82f
 https://stackoverflow.com/questions/39805580/gradle-ndk-cmake-build-fails-during-linking?answertab=active#tab-top
 http://d.hatena.ne.jp/sleepy_yoshi/20090510/p1
+http://www.sbcr.jp/support/13206.html
